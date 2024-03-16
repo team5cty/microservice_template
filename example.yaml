@@ -1,0 +1,41 @@
+#As specified in https://www.prisma.io/docs/orm/reference/connection-urls
+database:
+  provider: postgres
+  url: postgresql://postgres:l@localhost/mydb
+
+#models: models:
+    # - name: "User"
+    #   fields:
+    #     - name: "id"
+    #       type: "Int"
+    #       id: true
+    #       unique: true
+    #       default: "autoincrement()"
+    #     - name: "username"
+    #       type: "String"
+    #     - name: "email"
+    #       type: "String"
+    #       unique: true
+
+endpoints: 
+  - path: /user/{id}
+    method: GET
+    schema:
+    #here in schema we have to specify which model it is referring
+    #   model: User
+        type: object
+        properties:
+          id: int
+          username: string
+          email: string
+          password: string
+
+  - path: /users
+    method: GET
+    schema:
+        type: list
+        properties:
+          username: string
+          email: string
+
+
