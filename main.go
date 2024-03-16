@@ -10,7 +10,7 @@ import (
 /*Yaml has 3 fields currently
 -Database
 -Model- not implemented
--Endpoint
+-Endpoints array - list of endpoints
 */
 
 type Yaml struct {
