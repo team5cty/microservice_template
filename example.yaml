@@ -6,16 +6,12 @@ database:
 #models: models:
     # - name: "User"
     #   fields:
-    #     - name: "id"
-    #       type: "Int"
-    #       id: true
-    #       unique: true
-    #       default: "autoincrement()"
+    #     - name: id
+    #       type: Int @id @default(autoincrement())
     #     - name: "username"
-    #       type: "String"
+    #       type: "String @db.Text"
     #     - name: "email"
-    #       type: "String"
-    #       unique: true
+    #       type: "String @db.VarChar(255)"
 
 endpoints: 
   - path: /user/{id}
@@ -37,5 +33,10 @@ endpoints:
         properties:
           username: string
           email: string
+
+  - path: /getrandomuser
+    method: GET
+    # If there is no schema, handler function for /getrandomuser should be empty
+    # and will be defined by user.
 
 

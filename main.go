@@ -36,12 +36,16 @@ type Endpoint struct {
 }
 
 func main() {
-	yamlfile, err := os.ReadFile("example.yaml")
+	yamlfile, err := os.ReadFile("exampfle.yaml")
 	if err != nil {
 		fmt.Printf("Failed to read input.yaml file: %s\n", err.Error())
 		return
 	}
 	yamlobject := &Yaml{}
-	yaml.Unmarshal(yamlfile, yamlobject)
+	err = yaml.Unmarshal(yamlfile, yamlobject)
+	if err != nil {
+		fmt.Printf("Failed to parse YAML file: %s\n", err.Error())
+	}
+
 	fmt.Println(yamlobject)
 }
