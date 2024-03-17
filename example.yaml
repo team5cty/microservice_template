@@ -5,24 +5,36 @@ database:
 endpoints: 
   - name: User
     path: /user/{id}
-    method: GET
-    schema:
-        type: object
-        properties:
-          id: int
-          username: string
-          email: string
-          password: string
+    methods:
+      - method: GET
+        schema:
+            type: object
+            properties:
+              id: int
+              username: string
+              email: string
+      - method: POST
+        schema:
+              type: object
+              properties:
+                id: int
+                username: string
+                email: string
+                password: string
 
-  - path: /users
-    method: GET
-    schema:
-        type: list
-        properties:
-          username: string
-          email: string
+  - name: Users
+    path: /users
+    methods:
+      - method: GET
+        schema:
+            type: list
+            properties:
+              username: string
+              email: string
 
-  - path: /getrandomuser
-    method: GET
+  - name: Random 
+    path: /getrandomuser
+    methods:
+      - method: GET
 
 

@@ -22,13 +22,17 @@ type Yaml struct {
 }
 
 type Endpoint struct {
-	path   string `yaml:"string"`
-	method string `yaml:"method"`
+	Name    string   `yaml:"name"`
+	Path    string   `yaml:"string"`
+	Methods []Method `yaml:"methods"`
+}
 
+type Method struct {
+	method string `yaml:"method"`
 	Schema struct {
 		Type       string            `yaml:"type"`
 		Properties map[string]string `yaml:"properties"`
-	}
+	} `yaml:"schema"`
 }
 
 func main() {
@@ -42,7 +46,6 @@ func main() {
 	if err != nil {
 		fmt.Printf("Failed to parse YAML file: %s\n", err.Error())
 	}
-
 	fmt.Println(yamlobject)
 
 }
