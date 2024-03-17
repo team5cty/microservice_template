@@ -1,0 +1,18 @@
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"{{.Module}}/handlers"
+	"github.com/gorilla/mux"
+)
+
+
+func main() {
+	r := mux.NewRouter()
+	{{range .Endpoints}}
+	r.HandleFunc("{{.Path}}", handlers.{{.Method}}_{{.Name}}_Handler).Methods("{{.Method}}")
+	{{end}}
+	fmt.Println("Server is running...")
+	http.ListenAndServe(":8080", r)
+}

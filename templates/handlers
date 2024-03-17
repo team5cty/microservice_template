@@ -1,0 +1,48 @@
+package handlers
+
+import (
+	"encoding/json"
+	"io"
+	"net/http"
+	"fmt"
+	"{{.module}}/database"
+)
+
+type {{.endpoint.Name}} struct {
+	{{- range $key, $value := .Schema.Properties}}
+	{{title $key}} {{$value}} ` + "json:\"{{$key}}\"" + `
+	{{- end}}
+}
+
+{{if .endpoint.Method|isGET}}
+func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}) ToJSON(w io.Writer) error {
+	e:= json.NewEncoder(w)
+	return e.Encode({{.endpoint.Name | tolower}})
+}
+{{end}}
+{{if .endpoint.Method|isPOST}}
+func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}) FromJSON(r io.Reader) error {
+	d:= json.NewDecoder(r)
+	return d.Decode({{.endpoint.Name | tolower}})
+}
+{{end}}
+
+func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler(w http.ResponseWriter, r *http.Request) {
+	db , err := database.Conn()
+	if err!=nil{
+		fmt.Printf("Cannot connect to database: %s",err.Error())
+	}
+	defer db.Close()
+
+	{{- if .endpoint.Method|isGET}}
+	w.Header().Set("Content-Type", "application/json")
+	var {{.endpoint.Name | tolower}} {{.endpoint.Name}}
+	// Implement logic for {{.endpoint.Method}} {{.endpoint.Path}}
+	{{.endpoint.Name | tolower}}.ToJSON(w)
+	{{- end}}	
+	{{- if .endpoint.Method|isPOST}}
+	var {{.endpoint.Name | tolower}} {{.endpoint.Name}}
+	{{.endpoint.Name | tolower}}.FromJSON(r.Body)
+	// Implement logic for {{.endpoint.Method}} {{.endpoint.Path}}
+	{{- end}}	
+}
