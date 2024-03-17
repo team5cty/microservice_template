@@ -9,7 +9,7 @@ import (
 )
 
 type {{.endpoint.Name}} struct {
-	{{- range $key, $value := .Schema.Properties}}
+	{{- range $key, $value := .endpoint.Schema.Properties}}
 	{{title $key}} {{$value}} ` + "json:\"{{$key}}\"" + `
 	{{- end}}
 }
