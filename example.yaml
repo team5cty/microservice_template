@@ -1,24 +1,12 @@
-#As specified in https://www.prisma.io/docs/orm/reference/connection-urls
 database:
   provider: postgres
   url: postgresql://postgres:l@localhost/mydb
 
-#models: models:
-    # - name: "User"
-    #   fields:
-    #     - name: id
-    #       type: Int @id @default(autoincrement())
-    #     - name: "username"
-    #       type: "String @db.Text"
-    #     - name: "email"
-    #       type: "String @db.VarChar(255)"
-
 endpoints: 
-  - path: /user/{id}
+  - name: User
+    path: /user/{id}
     method: GET
     schema:
-    #here in schema we have to specify which model it is referring
-    #   model: User
         type: object
         properties:
           id: int
@@ -36,7 +24,5 @@ endpoints:
 
   - path: /getrandomuser
     method: GET
-    # If there is no schema, handler function for /getrandomuser should be empty
-    # and will be defined by user.
 
 

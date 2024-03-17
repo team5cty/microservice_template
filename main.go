@@ -7,9 +7,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-/*Yaml has 3 fields currently
+/*Yaml has 2 fields currently
 -Database
--Model- not implemented
 -Endpoints array - list of endpoints
 */
 
@@ -19,8 +18,6 @@ type Yaml struct {
 		Url      string `yaml:"url"`
 	} `yaml:"database"`
 
-	//Models []Model `yaml:"models"`
-
 	Endpoints []Endpoint `yaml:"endpoints"`
 }
 
@@ -29,14 +26,13 @@ type Endpoint struct {
 	method string `yaml:"method"`
 
 	Schema struct {
-		//Model Model `yaml:"model"`
 		Type       string            `yaml:"type"`
 		Properties map[string]string `yaml:"properties"`
 	}
 }
 
 func main() {
-	yamlfile, err := os.ReadFile("exampfle.yaml")
+	yamlfile, err := os.ReadFile("example.yaml")
 	if err != nil {
 		fmt.Printf("Failed to read input.yaml file: %s\n", err.Error())
 		return
@@ -48,4 +44,5 @@ func main() {
 	}
 
 	fmt.Println(yamlobject)
+
 }
