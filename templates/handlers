@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"fmt"
 	"{{.module}}/database"
+	{{- if and (eq .endpoint.Method "GET") (hasPathParam .endpoint.Path)}}
+	"github.com/gorilla/mux"
+	{{- end}}
 )
 
 type {{.endpoint.Name}} struct {
 	{{- range $key, $value := .endpoint.Schema.Properties}}
-	{{title $key}} {{$value}} ` + "json:\"{{$key}}\"" + `
+	{{title $key}} {{$value}}   `json:"{{$key}}"` 
 	{{- end}}
 }
 
@@ -34,12 +37,13 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler(w http.ResponseWriter, r *h
 	}
 	defer db.Close()
 
-	{{- if .endpoint.Method|isGET}}
 	w.Header().Set("Content-Type", "application/json")
-	var {{.endpoint.Name | tolower}} {{.endpoint.Name}}
+	{{- if (hasPathParam .endpoint.Path)}}
+	var params map[string]string = mux.Vars(r) //access dynamic variables from this map.
+	{{- end}}
+	var {{tolower .endpoint.Name}} {{.endpoint.Name}}
 	// Implement logic for {{.endpoint.Method}} {{.endpoint.Path}}
-	{{.endpoint.Name | tolower}}.ToJSON(w)
-	{{- end}}	
+	{{tolower .endpoint.Name}}.ToJSON(w)
 	{{- if .endpoint.Method|isPOST}}
 	var {{.endpoint.Name | tolower}} {{.endpoint.Name}}
 	{{.endpoint.Name | tolower}}.FromJSON(r.Body)

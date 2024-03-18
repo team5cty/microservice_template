@@ -29,4 +29,10 @@ endpoints:
     path: /getrandom
     method: GET
 
-
+  - name: add
+    path: /add/{id1}/{id2}
+    method: GET
+    schema:
+        type: object
+        properties:
+          sum: int

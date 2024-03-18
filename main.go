@@ -115,10 +115,11 @@ func main() {
 			fmt.Printf("Failed to create output.go file: %s\n", err.Error())
 		}
 		t := template.Must(template.New("restAPI").Funcs(template.FuncMap{
-			"tolower": strings.ToLower,
-			"isGET":   isGET,
-			"isPOST":  isPOST,
-			"title":   strings.Title,
+			"tolower":      strings.ToLower,
+			"isGET":        isGET,
+			"isPOST":       isPOST,
+			"title":        strings.Title,
+			"hasPathParam": hasPathParam,
 		}).Parse(string(template_file_buffer)))
 		//We need name of module as variable inside handler template,
 		// so passing this map with both a endpoint and module name.
@@ -133,8 +134,8 @@ func main() {
 	}
 }
 
-//functions for checking if method is get or post
-//inorder to add either ToJSON or FromJSON methods to struct in handlers template.
+// functions for checking if method is get or post
+// inorder to add either ToJSON or FromJSON methods to struct in handlers template.
 func isGET(s string) bool {
 	if s == "GET" {
 		return true
@@ -147,4 +148,7 @@ func isPOST(s string) bool {
 		return true
 	}
 	return false
+}
+func hasPathParam(path string) bool {
+	return strings.Contains(path, "{")
 }
