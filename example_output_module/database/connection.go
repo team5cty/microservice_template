@@ -7,7 +7,7 @@ import (
 )
 
 func Conn() (*sql.DB, error) {
-	databaseurl := "{{.Url}}"
+	databaseurl := "postgresql://postgres:l@localhost/mydb"
 	db, err := sql.Open("postgres", databaseurl)
 	if err != nil {
 		return nil, err

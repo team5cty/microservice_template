@@ -120,6 +120,7 @@ func main() {
 			"isPOST":       isPOST,
 			"title":        strings.Title,
 			"hasPathParam": hasPathParam,
+			"isList":       isList,
 		}).Parse(string(template_file_buffer)))
 		//We need name of module as variable inside handler template,
 		// so passing this map with both a endpoint and module name.
@@ -151,4 +152,11 @@ func isPOST(s string) bool {
 }
 func hasPathParam(path string) bool {
 	return strings.Contains(path, "{")
+}
+
+func isList(st string) bool {
+	if st == "list" {
+		return true
+	}
+	return false
 }

@@ -17,23 +17,29 @@ type {{.endpoint.Name}} struct {
 	{{- end}}
 }
 
+{{if .endpoint.Schema.Type | isList}}
+type {{.endpoint.Name}}_list []*{{.endpoint.Name}}
+{{- end}}
+
 {{if .endpoint.Method|isGET}}
-func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}) ToJSON(w io.Writer) error {
+func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}{{if .endpoint.Schema.Type | isList}}_list{{end}}) ToJSON(w io.Writer) error {
 	e:= json.NewEncoder(w)
 	return e.Encode({{.endpoint.Name | tolower}})
 }
-{{end}}
-{{if .endpoint.Method|isPOST}}
-func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}) FromJSON(r io.Reader) error {
+{{- end}}
+
+{{- if .endpoint.Method|isPOST}}
+func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}{{if .endpoint.Schema.Type | isList}}_list{{end}}) FromJSON(r io.Reader) error {
 	d:= json.NewDecoder(r)
 	return d.Decode({{.endpoint.Name | tolower}})
 }
-{{end}}
+{{- end}}
 
 func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler(w http.ResponseWriter, r *http.Request) {
 	db , err := database.Conn()
 	if err!=nil{
 		fmt.Printf("Cannot connect to database: %s",err.Error())
+		return
 	}
 	defer db.Close()
 
@@ -41,9 +47,11 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler(w http.ResponseWriter, r *h
 	{{- if (hasPathParam .endpoint.Path)}}
 	var params map[string]string = mux.Vars(r) //access dynamic variables from this map.
 	{{- end}}
-	var {{tolower .endpoint.Name}} {{.endpoint.Name}}
+	{{- if .endpoint.Method|isGET}}
+	var {{tolower .endpoint.Name}} {{.endpoint.Name}}{{if .endpoint.Schema.Type | isList}}_list{{end}}
 	// Implement logic for {{.endpoint.Method}} {{.endpoint.Path}}
 	{{tolower .endpoint.Name}}.ToJSON(w)
+	{{- end}}
 	{{- if .endpoint.Method|isPOST}}
 	var {{.endpoint.Name | tolower}} {{.endpoint.Name}}
 	{{.endpoint.Name | tolower}}.FromJSON(r.Body)

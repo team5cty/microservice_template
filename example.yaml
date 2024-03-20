@@ -1,13 +1,33 @@
-module: output
+module: example_output_module
 
 database:
   provider: postgres
   url: postgresql://postgres:l@localhost/mydb
 
 endpoints: 
+  - name: Users
+    path: /
+    method: GET
+    schema:
+        type: list
+        properties:
+          id: int
+          username: string
+          email: string
+          password: string
+
   - name: User
     path: /user/{id}
     method: GET
+    schema:
+        type: object
+        properties:
+          username: string
+          email: string
+
+  - name: AddUser
+    path: /adduser/{id}
+    method: POST
     schema:
         type: object
         properties:
@@ -16,23 +36,4 @@ endpoints:
           email: string
           password: string
 
-  - name: Users
-    path: /users
-    method: GET
-    schema:
-        type: object
-        properties:
-          username: string
-          email: string
 
-  - name: random
-    path: /getrandom
-    method: GET
-
-  - name: add
-    path: /add/{id1}/{id2}
-    method: GET
-    schema:
-        type: object
-        properties:
-          sum: int
