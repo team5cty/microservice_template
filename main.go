@@ -20,22 +20,28 @@ type Yaml struct {
 	Module string `yaml:"module"`
 
 	Database struct {
-		Provider string `yaml:"provider"`
-		Url      string `yaml:"url"`
+		Provider string  `yaml:"provider"`
+		Url      string  `yaml:"url"`
+		Models   []Model `yaml:"models"`
 	} `yaml:"database"`
 
 	Endpoints []Endpoint `yaml:"endpoints"`
+}
+
+type Model struct {
+	Table  string            `yaml:"table"`
+	Schema map[string]string `yaml:"schema"`
 }
 
 type Endpoint struct {
 	Name   string `yaml:"name"`
 	Path   string `yaml:"path"`
 	Method string `yaml:"method"`
-
-	Schema struct {
+	Table  string `yaml:"table"`
+	Json   struct {
 		Type       string            `yaml:"type"`
 		Properties map[string]string `yaml:"properties"`
-	}
+	} `yaml:"json"`
 }
 
 func main() {
@@ -84,21 +90,6 @@ func main() {
 	}
 	t := template.Must(template.New("restAPI").Funcs(template.FuncMap{"tolower": strings.ToLower}).Parse(string(template_file_buffer)))
 	err = t.Execute(template_output_buffer, yamlobject)
-	if err != nil {
-		fmt.Printf("Error executing template: %s\n", err.Error())
-	}
-
-	//read database template and generate connection.go inside database folder inside module.
-	template_file_buffer, err = os.ReadFile("templates/database")
-	if err != nil {
-		fmt.Printf("Failed to read template.go file: %s\n", err.Error())
-	}
-	template_output_buffer, err = os.Create(yamlobject.Module + "/database/connection.go")
-	if err != nil {
-		fmt.Printf("Failed to create output.go file: %s\n", err.Error())
-	}
-	t = template.Must(template.New("restAPI").Parse(string(template_file_buffer)))
-	err = t.Execute(template_output_buffer, yamlobject.Database)
 	if err != nil {
 		fmt.Printf("Error executing template: %s\n", err.Error())
 	}

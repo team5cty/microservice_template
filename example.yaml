@@ -3,23 +3,31 @@ module: example_output_module
 database:
   provider: postgres
   url: postgresql://postgres:l@localhost/mydb
+  models:
+    - table: User
+      schema:
+        id: Int @id @default(autoincrement())
+        username: String @db.varchar(10)
+        email: String @db.text
+    - table: Random
+      schem:
+        id: Int @id 
 
 endpoints: 
   - name: Users
-    path: /
+    path: /user/{id}
     method: GET
-    schema:
-        type: list
-        properties:
-          id: int
-          username: string
-          email: string
-          password: string
+    table: User
+    json:
+      type: object
+      properties:
+    
 
   - name: User
     path: /user/{id}
     method: GET
-    schema:
+    table: User
+    json:
         type: object
         properties:
           username: string
@@ -28,7 +36,8 @@ endpoints:
   - name: AddUser
     path: /adduser/{id}
     method: POST
-    schema:
+    table: User
+    json:
         type: object
         properties:
           id: int

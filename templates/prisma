@@ -1,0 +1,16 @@
+datasource db {
+  provider = {{.Database.provider}}
+  url      = {{.Database.Url}}
+}
+
+generator db {
+  provider = "go run github.com/steebchen/prisma-client-go"
+}
+
+{{range .Database.Models}}
+model {{.}} {
+  {{range $key,$val := .Schema}}
+  {{$key}} {{$val}}
+  {{end}}
+}
+{{end}}
