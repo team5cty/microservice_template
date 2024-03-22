@@ -11,9 +11,9 @@ import (
 func main() {
 	r := mux.NewRouter()
 	
-	r.HandleFunc("/", handlers.GET_Users_Handler).Methods("GET")
+	r.HandleFunc("/user/{id}", handlers.GET_Users_Handler).Methods("GET")
 	
-	r.HandleFunc("/user/{id}", handlers.GET_User_Handler).Methods("GET")
+	r.HandleFunc("/user/", handlers.GET_User_Handler).Methods("GET")
 	
 	r.HandleFunc("/adduser/{id}", handlers.POST_AddUser_Handler).Methods("POST")
 	

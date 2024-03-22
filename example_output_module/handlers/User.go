@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"fmt"
 	"example_output_module/database"
-	"github.com/gorilla/mux"
 )
 
 type User struct {
@@ -31,8 +30,7 @@ func GET_User_Handler(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	w.Header().Set("Content-Type", "application/json")
-	var params map[string]string = mux.Vars(r) //access dynamic variables from this map.
 	var user User
-	// Implement logic for GET /user/{id}
+	// Implement logic for GET /user/
 	user.ToJSON(w)	
 }

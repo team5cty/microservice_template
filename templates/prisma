@@ -1,6 +1,6 @@
 datasource db {
-  provider = {{.Database.provider}}
-  url      = {{.Database.Url}}
+  provider = "{{.Database.Provider}}"
+  url      = "{{.Database.Url}}"
 }
 
 generator db {
@@ -8,9 +8,10 @@ generator db {
 }
 
 {{range .Database.Models}}
-model {{.}} {
-  {{range $key,$val := .Schema}}
+model {{.Table}} {
+  {{- range $key,$val := .Schema}}
   {{$key}} {{$val}}
-  {{end}}
+  {{- end}}
 }
 {{end}}
+

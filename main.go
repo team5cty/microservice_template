@@ -65,13 +65,19 @@ func main() {
 	os.Mkdir(yamlobject.Module, os.ModePerm)
 	os.Chdir(yamlobject.Module)
 	os.Mkdir("handlers", os.ModePerm)
-	os.Mkdir("database", os.ModePerm)
+	os.Mkdir("prisma", os.ModePerm)
 	cmd := exec.Command("go", "mod", "init", yamlobject.Module)
 	cmd.Run()
 	cmd = exec.Command("go", "get", "github.com/gorilla/mux")
 	cmd.Run()
-	cmd = exec.Command("go", "get", "github.com/lib/pq")
-	cmd.Run()
+	cmd = exec.Command("go", "get", "github.com/steebchen/prisma-client-go")
+	cmd.Stderr = os.Stderr
+
+	// Execute the command
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println("Error occurred:", err)
+	}
 	os.Chdir("..")
 
 	//There are three template files:-
@@ -93,6 +99,37 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error executing template: %s\n", err.Error())
 	}
+	template_file_buffer, err = os.ReadFile("templates/prisma")
+	if err != nil {
+		fmt.Printf("Failed to read template.go file: %s\n", err.Error())
+	}
+	template_output_buffer, err = os.Create(yamlobject.Module + "/prisma/schema.prisma")
+	if err != nil {
+		fmt.Printf("Failed to create output.go file: %s\n", err.Error())
+	}
+	t = template.Must(template.New("restAPI").Parse(string(template_file_buffer)))
+	err = t.Execute(template_output_buffer, yamlobject)
+	if err != nil {
+		fmt.Printf("Error executing template: %s\n", err.Error())
+	}
+	os.Chdir(yamlobject.Module + "/prisma")
+	fmt.Println(os.Getwd())
+	cmd = exec.Command("go", "run", "github.com/steebchen/prisma-client-go", "db", "push")
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Error starting command:", err)
+		return
+	}
+
+	// Wait for the command to finish
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Error occurred:", err)
+		return
+	}
+
+	// After the command is executed, change the directory
+	os.Chdir("..")
+	os.Chdir("..")
 
 	//Loop through each endpoints and for each, generate a file
 	// inside handlers folder in module using handler template

@@ -1,0 +1,21 @@
+datasource db {
+  provider = "postgres"
+  url      = "postgresql://postgres:password@localhost:3000/newdb5"
+}
+
+generator db {
+  provider = "go run github.com/steebchen/prisma-client-go"
+}
+
+
+model User {
+  email String
+  id Int @id @default(autoincrement())
+  username String
+}
+
+model Random {
+  id Int @id
+}
+
+

@@ -12,24 +12,24 @@ import (
 )
 
 type {{.endpoint.Name}} struct {
-	{{- range $key, $value := .endpoint.Schema.Properties}}
+	{{- range $key, $value := .endpoint.Json.Properties}}
 	{{title $key}} {{$value}}   `json:"{{$key}}"` 
 	{{- end}}
 }
 
-{{if .endpoint.Schema.Type | isList}}
+{{if .endpoint.Json.Type | isList}}
 type {{.endpoint.Name}}_list []*{{.endpoint.Name}}
 {{- end}}
 
 {{if .endpoint.Method|isGET}}
-func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}{{if .endpoint.Schema.Type | isList}}_list{{end}}) ToJSON(w io.Writer) error {
+func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}{{if .endpoint.Json.Type | isList}}_list{{end}}) ToJSON(w io.Writer) error {
 	e:= json.NewEncoder(w)
 	return e.Encode({{.endpoint.Name | tolower}})
 }
 {{- end}}
 
 {{- if .endpoint.Method|isPOST}}
-func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}{{if .endpoint.Schema.Type | isList}}_list{{end}}) FromJSON(r io.Reader) error {
+func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}{{if .endpoint.Json.Type | isList}}_list{{end}}) FromJSON(r io.Reader) error {
 	d:= json.NewDecoder(r)
 	return d.Decode({{.endpoint.Name | tolower}})
 }
@@ -48,7 +48,7 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler(w http.ResponseWriter, r *h
 	var params map[string]string = mux.Vars(r) //access dynamic variables from this map.
 	{{- end}}
 	{{- if .endpoint.Method|isGET}}
-	var {{tolower .endpoint.Name}} {{.endpoint.Name}}{{if .endpoint.Schema.Type | isList}}_list{{end}}
+	var {{tolower .endpoint.Name}} {{.endpoint.Name}}{{if .endpoint.Json.Type | isList}}_list{{end}}
 	// Implement logic for {{.endpoint.Method}} {{.endpoint.Path}}
 	{{tolower .endpoint.Name}}.ToJSON(w)
 	{{- end}}

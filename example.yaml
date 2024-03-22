@@ -2,15 +2,15 @@ module: example_output_module
 
 database:
   provider: postgres
-  url: postgresql://postgres:l@localhost/mydb
+  url: postgresql://postgres:password@localhost:3000/newdb5
   models:
     - table: User
       schema:
         id: Int @id @default(autoincrement())
-        username: String @db.varchar(10)
-        email: String @db.text
+        username: String 
+        email: String 
     - table: Random
-      schem:
+      schema:
         id: Int @id 
 
 endpoints: 
@@ -19,12 +19,12 @@ endpoints:
     method: GET
     table: User
     json:
-      type: object
+      type: list
       properties:
     
 
   - name: User
-    path: /user/{id}
+    path: /user/
     method: GET
     table: User
     json:
@@ -40,9 +40,6 @@ endpoints:
     json:
         type: object
         properties:
-          id: int
-          username: string
-          email: string
-          password: string
+          
 
 

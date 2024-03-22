@@ -9,10 +9,6 @@ import (
 )
 
 type AddUser struct {
-	Email string   `json:"email"`
-	Id int   `json:"id"`
-	Password string   `json:"password"`
-	Username string   `json:"username"`
 }
 
 
