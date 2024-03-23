@@ -10,9 +10,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-/*Yaml has 3 fields currently
+/*Yaml has 3 fields
 -Module - name of module to be generated
--Database
+-Database - url and schema of tables
 -Endpoints array - list of endpoints
 */
 
@@ -60,8 +60,9 @@ func main() {
 
 	//Create a new git module with name as per in YAML
 	//Inside it create handlers folder which will contain handler function and struct of one endpoint
-	//Create database folder inside which there will be function which initialises database connection.
-	//Run command go mod init and go get to install packages packages gorilla/mux and lib/pq.
+	//Create prisma folder inside which there will be schema.prisma file.
+	//Run command go mod init and go get to install packages packages gorilla/mux and lib/pq and prisma.
+
 	os.Mkdir(yamlobject.Module, os.ModePerm)
 	os.Chdir(yamlobject.Module)
 	os.Mkdir("handlers", os.ModePerm)
@@ -71,13 +72,7 @@ func main() {
 	cmd = exec.Command("go", "get", "github.com/gorilla/mux")
 	cmd.Run()
 	cmd = exec.Command("go", "get", "github.com/steebchen/prisma-client-go")
-	cmd.Stderr = os.Stderr
-
-	// Execute the command
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println("Error occurred:", err)
-	}
+	cmd.Run()
 	os.Chdir("..")
 
 	//There are three template files:-
@@ -115,19 +110,17 @@ func main() {
 	os.Chdir(yamlobject.Module + "/prisma")
 	fmt.Println(os.Getwd())
 	cmd = exec.Command("go", "run", "github.com/steebchen/prisma-client-go", "db", "push")
-	// Start the command
+
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Error starting command:", err)
 		return
 	}
 
-	// Wait for the command to finish
 	if err := cmd.Wait(); err != nil {
 		fmt.Println("Error occurred:", err)
 		return
 	}
 
-	// After the command is executed, change the directory
 	os.Chdir("..")
 	os.Chdir("..")
 
@@ -156,6 +149,7 @@ func main() {
 			"endpoint": i,
 			"module":   yamlobject.Module,
 		}
+
 		err = t.Execute(template_output_buffer, data)
 		if err != nil {
 			fmt.Printf("Error executing template: %s\n", err.Error())

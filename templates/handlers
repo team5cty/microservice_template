@@ -5,10 +5,12 @@ import (
 	"io"
 	"net/http"
 	"fmt"
-	"{{.module}}/database"
-	{{- if and (eq .endpoint.Method "GET") (hasPathParam .endpoint.Path)}}
+	"context"
+	{{- if hasPathParam .endpoint.Path}}
 	"github.com/gorilla/mux"
 	{{- end}}
+	"{{.module}}/prisma"
+	"{{.module}}/prisma/db"
 )
 
 type {{.endpoint.Name}} struct {
@@ -35,28 +37,56 @@ func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}{{if .endpoint.Json.Type |
 }
 {{- end}}
 
-func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler(w http.ResponseWriter, r *http.Request) {
-	
-
+func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *http.Request) {
 	//w.Header().Set("Content-Type", "application/json")
+	client := prisma.NewClient() // Initialize Prisma client
+	ctx := context.Background()
+	defer client.Disconnect()  
 
-	{{- if (hasPathParam .endpoint.Path)}}
-	var params map[string]string = mux.Vars(r) //access dynamic variables from this map.
-	id, ok := params["id"]
-	if !ok {
-		http.Error(w, "ID parameter not found in the path", http.StatusBadRequest)
-		return
-	}
-	{{- end}}
-	var {{tolower .endpoint.Name}} {{.endpoint.Name}}
-	{{- if .endpoint.Method|isGET}}
-	{{if .endpoint.Json.Type | isList}}_list{{end}}
-	// Implement logic for {{.endpoint.Method}} {{.endpoint.Path}}
-	{{tolower .endpoint.Name}}.ToJSON(w)
-	{{- end}}
-	{{- if .endpoint.Method|isPOST}}
-	var {{.endpoint.Name | tolower}} {{.endpoint.Name}}
-	{{.endpoint.Name | tolower}}.FromJSON(r.Body)
-	// Implement logic for {{.endpoint.Method}} {{.endpoint.Path}}
-	{{- end}}	
+	{{- if .endpoint.Json.Type | isList}}
+	var {{tolower .endpoint.Name}} {{.endpoint.Name}}_list
+		{{if .endpoint.Method | isGET}}
+				{{if not .endpoint.Json.Properties}}
+					res, err := client.{{.endpoint.Table}}.FindMany()
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+					for _, object := range res {
+						ele := &{{.endpoint.Name}}{
+							{{- range $key, $value := .endpoint.Json.Properties}}
+							{{title $key}}: object.{{$value}}
+							{{- end}}
+						}
+						{{tolower .endpoint.Name}} = append({{tolower .endpoint.Name}}, ele)
+					}
+					{{tolower .endpoint.Name}}.ToJSON(w)
+				{{else}}
+					//Implement logic for {{.endpoint.Method}} {{.endpoint.Path}}
+				{{end}}
+		{{end}}
+	{{else}}
+		var {{tolower .endpoint.Name}} {{.endpoint.Name}}
+		{{if (.endpoint.Method | isGET)}}
+			{{if not .endpoint.Json.Properties}}
+				var params map[string]string = mux.Vars(r) //access dynamic variables from this map.
+				id, ok := params["id"]
+				if !ok {
+					http.Error(w, "ID parameter not found in the path", http.StatusBadRequest)
+					return
+				}
+				res, err := client.{{.endpoint.Table}}.FindUnique(db.{{.endpoint.Table}}.id.Equals(id)).Exec(ctx)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				{{tolower .endpoint.Name}} = {
+					{{- range $key, $value := .endpoint.Json.Properties}}
+					{{title $key}}: res.{{$value}}
+					{{- end}}
+				}
+				{{tolower .endpoint.Name}}.ToJSON(w)
+	        {{end}}
+		{{end}}
+	{{end}}
 }

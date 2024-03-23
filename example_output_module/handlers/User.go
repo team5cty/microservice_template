@@ -5,32 +5,43 @@ import (
 	"io"
 	"net/http"
 	"fmt"
-	"example_output_module/database"
+	"context"
+	"example_output_module/prisma"
+	"example_output_module/prisma/db"
 )
 
 type User struct {
-	Email string   `json:"email"`
-	Username string   `json:"username"`
 }
 
 
+type User_list []*User
 
 
-func (user *User) ToJSON(w io.Writer) error {
+func (user *User_list) ToJSON(w io.Writer) error {
 	e:= json.NewEncoder(w)
 	return e.Encode(user)
 }
 
-func GET_User_Handler(w http.ResponseWriter, r *http.Request) {
-	db , err := database.Conn()
-	if err!=nil{
-		fmt.Printf("Cannot connect to database: %s",err.Error())
-		return
-	}
-	defer db.Close()
-
-	w.Header().Set("Content-Type", "application/json")
-	var user User
-	// Implement logic for GET /user/
-	user.ToJSON(w)	
+func GET_User_Handler (w http.ResponseWriter, r *http.Request) {
+	//w.Header().Set("Content-Type", "application/json")
+	client := prisma.NewClient() // Initialize Prisma client
+	ctx := context.Background()
+	defer client.Disconnect()
+	var user User_list
+		
+				
+					res, err := client.User.FindMany()
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+					for _, object := range res {
+						ele := &User{
+						}
+						user = append(user, ele)
+					}
+					user.ToJSON(w)
+				
+		
+	
 }

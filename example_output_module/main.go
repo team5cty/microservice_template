@@ -15,7 +15,7 @@ func main() {
 	
 	r.HandleFunc("/user/", handlers.GET_User_Handler).Methods("GET")
 	
-	r.HandleFunc("/adduser/{id}", handlers.POST_AddUser_Handler).Methods("POST")
+	r.HandleFunc("/users/", handlers.GET_Userss_Handler).Methods("GET")
 	
 	fmt.Println("Server is running...")
 	err := http.ListenAndServe(":8080", r)
