@@ -120,6 +120,26 @@ func main() {
 		fmt.Println("Error occurred:", err)
 		return
 	}
+	cmd = exec.Command("go", "get", "github.com/joho/godotenv")
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Error starting command:", err)
+		return
+	}
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Error occurred:", err)
+		return
+	}
+	cmd = exec.Command("go", "get", "github.com/shopspring/decimal")
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Error starting command:", err)
+		return
+	}
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Error occurred:", err)
+		return
+	}
 
 	os.Chdir("..")
 	os.Chdir("..")

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"fmt"
 	"context"
+	"strconv"
 	{{- if hasPathParam .endpoint.Path}}
 	"github.com/gorilla/mux"
 	{{- end}}
@@ -39,14 +40,14 @@ func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}{{if .endpoint.Json.Type |
 
 func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *http.Request) {
 	//w.Header().Set("Content-Type", "application/json")
-	client := prisma.NewClient() // Initialize Prisma client
+	client := db.NewClient() // Initialize Prisma client
 	ctx := context.Background()
 	defer client.Disconnect()  
 
 	{{- if .endpoint.Json.Type | isList}}
 	var {{tolower .endpoint.Name}} {{.endpoint.Name}}_list
 		{{if .endpoint.Method | isGET}}
-					res, err := client.{{.endpoint.Table}}.FindMany(ctx)
+					res, err := client.{{.endpoint.Table}}.FindMany().Exec(ctx)
 					if err != nil {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
@@ -70,16 +71,18 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *
 					http.Error(w, "ID parameter not found in the path", http.StatusBadRequest)
 					return
 				}
-				res, err := client.{{.endpoint.Table}}.FindUnique(db.{{.endpoint.Table}}.id.Equals(id)).Exec(ctx)
+				idint, _ := strconv.Atoi(id)
+				res, err := client.{{.endpoint.Table}}.FindUnique(db.{{.endpoint.Table}}.ID.Equals(idint)).Exec(ctx)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
+				ele := &{{.endpoint.Name}}{
 					{{- range $key, $value := .endpoint.Json.Properties}}
-					{{title $key}}: res.{{$key}},
+					{{title $key}}: res.{{title $key}},
 					{{- end}}
-				
-				{{tolower .endpoint.Name}}.ToJSON(w)
+				}
+				ele.ToJSON(w)
 		{{end}}
 	{{end}}
 }
