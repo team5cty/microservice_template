@@ -46,8 +46,7 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *
 	{{- if .endpoint.Json.Type | isList}}
 	var {{tolower .endpoint.Name}} {{.endpoint.Name}}_list
 		{{if .endpoint.Method | isGET}}
-				{{if not .endpoint.Json.Properties}}
-					res, err := client.{{.endpoint.Table}}.FindMany()
+					res, err := client.{{.endpoint.Table}}.FindMany(ctx)
 					if err != nil {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
@@ -55,20 +54,16 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *
 					for _, object := range res {
 						ele := &{{.endpoint.Name}}{
 							{{- range $key, $value := .endpoint.Json.Properties}}
-							{{title $key}}: object.{{$value}}
+							{{title $key}}: object.{{$key}},
 							{{- end}}
 						}
 						{{tolower .endpoint.Name}} = append({{tolower .endpoint.Name}}, ele)
 					}
 					{{tolower .endpoint.Name}}.ToJSON(w)
-				{{else}}
-					//Implement logic for {{.endpoint.Method}} {{.endpoint.Path}}
-				{{end}}
 		{{end}}
 	{{else}}
 		var {{tolower .endpoint.Name}} {{.endpoint.Name}}
 		{{if (.endpoint.Method | isGET)}}
-			{{if not .endpoint.Json.Properties}}
 				var params map[string]string = mux.Vars(r) //access dynamic variables from this map.
 				id, ok := params["id"]
 				if !ok {
@@ -80,13 +75,11 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
-				{{tolower .endpoint.Name}} = {
 					{{- range $key, $value := .endpoint.Json.Properties}}
-					{{title $key}}: res.{{$value}}
+					{{title $key}}: res.{{$key}},
 					{{- end}}
-				}
+				
 				{{tolower .endpoint.Name}}.ToJSON(w)
-	        {{end}}
 		{{end}}
 	{{end}}
 }

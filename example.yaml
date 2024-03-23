@@ -2,7 +2,7 @@ module: example_output_module
 
 database:
   provider: postgres
-  url: postgresql://postgres:l@localhost:5432/newdb12
+  url: postgresql://postgres:password@localhost:3000/newdb12
   models:
     - table: User
       schema:
@@ -19,12 +19,11 @@ endpoints:
     method: GET
     table: User
     json:
-      type: object
+      type: list
       properties:
         id: int
         username: string
-        email: string
-    
+       
 
   - name: User
     path: /user/
@@ -44,7 +43,9 @@ endpoints:
     json:
         type: list
         properties:
-          name: string
+          id: int
+          username: string
+          email: string
 
   
 
