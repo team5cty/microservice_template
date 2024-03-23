@@ -1,39 +1,46 @@
 module: example_output_module
 
+port: 8080
+
 database:
   provider: postgres
-  url: postgresql://postgres:l@localhost:5432/newdb12
+  url: postgresql://postgres:l@localhost/newdb123
   models:
     - table: User
       schema:
-        id: Int @id @default(autoincrement())
-        username: String 
-        email: String 
-    - table: Random
-      schema:
-        id: Int @id 
+        Id: Int @id @default(autoincrement())
+        Username: String 
+        Email: String
+        dob: String
 
 endpoints: 
   - name: Users
-    path: /user/
+    path: /users/
     method: GET
     table: User
     json:
         type: list
         properties:
-          id: int
-          username: string
-          email: string
+            username: string
+            Email: string
+          
 
   - name: User
-    path: /users/{id}
+    path: /users/{Id}
     method: GET
     table: User
+    key:
+        name: Id
+        type: int
     json:
         type: object
         properties:
-          id: int
-          username: string
+            Username: string
+            Email: string
+            Dob: string
+
+
+          
 
 
   

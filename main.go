@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -17,8 +19,8 @@ import (
 */
 
 type Yaml struct {
-	Module string `yaml:"module"`
-
+	Module   string `yaml:"module"`
+	Port     string `yaml:"port"`
 	Database struct {
 		Provider string  `yaml:"provider"`
 		Url      string  `yaml:"url"`
@@ -38,7 +40,11 @@ type Endpoint struct {
 	Path   string `yaml:"path"`
 	Method string `yaml:"method"`
 	Table  string `yaml:"table"`
-	Json   struct {
+	Key    struct {
+		Name string `yaml:"name"`
+		Type string `yaml:"type"`
+	} `yaml:"key"`
+	Json struct {
 		Type       string            `yaml:"type"`
 		Properties map[string]string `yaml:"properties"`
 	} `yaml:"json"`
@@ -107,25 +113,27 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error executing template: %s\n", err.Error())
 	}
-	os.Chdir(yamlobject.Module + "/prisma")
-	fmt.Println(os.Getwd())
-	cmd = exec.Command("go", "run", "github.com/steebchen/prisma-client-go", "db", "push")
 
+	// Run prisma db push
+	fmt.Println("Syncing schema with database...")
+	os.Chdir(yamlobject.Module + "/prisma")
+	var out bytes.Buffer
+	cmd = exec.Command("go", "run", "github.com/steebchen/prisma-client-go", "db", "push")
+	cmd.Stdout = &out
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Error starting command:", err)
 		return
 	}
-
 	if err := cmd.Wait(); err != nil {
 		fmt.Println("Error occurred:", err)
 		return
 	}
+	fmt.Println(out.String())
 	cmd = exec.Command("go", "get", "github.com/joho/godotenv")
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Error starting command:", err)
 		return
 	}
-
 	if err := cmd.Wait(); err != nil {
 		fmt.Println("Error occurred:", err)
 		return
@@ -162,6 +170,7 @@ func main() {
 			"title":        strings.Title,
 			"hasPathParam": hasPathParam,
 			"isList":       isList,
+			"isNumeric":    is_numeric,
 		}).Parse(string(template_file_buffer)))
 		//We need name of module as variable inside handler template,
 		// so passing this map with both a endpoint and module name.
@@ -201,4 +210,8 @@ func isList(st string) bool {
 		return true
 	}
 	return false
+}
+
+func is_numeric(word string) bool {
+	return regexp.MustCompile(`\d`).MatchString(word)
 }

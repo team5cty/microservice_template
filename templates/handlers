@@ -4,19 +4,19 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"fmt"
 	"context"
+	{{if eq .endpoint.Key.Type "int"}}
 	"strconv"
+	{{end}}
 	{{- if hasPathParam .endpoint.Path}}
 	"github.com/gorilla/mux"
 	{{- end}}
-	"{{.module}}/prisma"
 	"{{.module}}/prisma/db"
 )
 
 type {{.endpoint.Name}} struct {
 	{{- range $key, $value := .endpoint.Json.Properties}}
-	{{title $key}} {{$value}}   `json:"{{$key}}"` 
+	{{title $key}} {{$value}}   `json:"{{tolower $key}}"` 
 	{{- end}}
 }
 
@@ -42,9 +42,16 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *
 	//w.Header().Set("Content-Type", "application/json")
 	client := db.NewClient() // Initialize Prisma client
 	ctx := context.Background()
-	defer client.Disconnect()  
+	if err := client.Prisma.Connect(); err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := client.Prisma.Disconnect(); err != nil {
+			panic(err)
+		}
+	}()  
 
-	{{- if .endpoint.Json.Type | isList}}
+	{{- if .endpoint.Json.Type | isList}} //is list
 	var {{tolower .endpoint.Name}} {{.endpoint.Name}}_list
 		{{if .endpoint.Method | isGET}}
 					res, err := client.{{.endpoint.Table}}.FindMany().Exec(ctx)
@@ -55,32 +62,34 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *
 					for _, object := range res {
 						ele := &{{.endpoint.Name}}{
 							{{- range $key, $value := .endpoint.Json.Properties}}
-							{{title $key}}: object.{{$key}},
+							{{title $key}}: object.{{title $key}},
 							{{- end}}
 						}
 						{{tolower .endpoint.Name}} = append({{tolower .endpoint.Name}}, ele)
 					}
 					{{tolower .endpoint.Name}}.ToJSON(w)
 		{{end}}
-	{{else}}
-		var {{tolower .endpoint.Name}} {{.endpoint.Name}}
+	{{else}} // is object
 		{{if (.endpoint.Method | isGET)}}
-				var params map[string]string = mux.Vars(r) //access dynamic variables from this map.
-				id, ok := params["id"]
-				if !ok {
-					http.Error(w, "ID parameter not found in the path", http.StatusBadRequest)
-					return
+				m:=mux.Vars(r)
+				var val string
+				for _,v := range m{
+					val=v
 				}
-				idint, _ := strconv.Atoi(id)
-				res, err := client.{{.endpoint.Table}}.FindUnique(db.{{.endpoint.Table}}.ID.Equals(idint)).Exec(ctx)
+				{{if eq .endpoint.Key.Type "int"}}
+					value, _ := strconv.Atoi(val)
+				{{else}}
+					value := val
+				{{end}}
+				res, err := client.{{.endpoint.Table}}.FindUnique(db.{{.endpoint.Table}}.{{if eq (title .endpoint.Key.Name) "Id"}}ID{{else}}{{title .endpoint.Key.Name}}{{end}}.Equals(value)).Exec(ctx)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
 				ele := &{{.endpoint.Name}}{
-					{{- range $key, $value := .endpoint.Json.Properties}}
-					{{title $key}}: res.{{title $key}},
-					{{- end}}
+				{{- range $key, $value := .endpoint.Json.Properties}}
+				{{title $key}}:res.{{if eq (title $key) "Id"}}ID{{else}}{{title $key}}{{end}},
+				{{- end}}
 				}
 				ele.ToJSON(w)
 		{{end}}

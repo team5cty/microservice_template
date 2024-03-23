@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgres"
-  url      = "postgresql://postgres:l@localhost:5432/newdb12"
+  url      = "postgresql://postgres:l@localhost/newdb123"
 }
 
 generator db {
@@ -9,13 +9,10 @@ generator db {
 
 
 model User {
-  email String
-  id Int @id @default(autoincrement())
-  username String
-}
-
-model Random {
-  id Int @id
+  Email String
+  Id Int @id @default(autoincrement())
+  Username String
+  dob String
 }
 
 

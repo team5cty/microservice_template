@@ -1,48 +1,63 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
-	"example_output_module/prisma/db"
 	"io"
 	"net/http"
+	"context"
+	
 	"strconv"
-
+	
 	"github.com/gorilla/mux"
+	"example_output_module/prisma/db"
 )
 
 type User struct {
-	Id       int    `json:"id"`
-	Username string `json:"username"`
+	Dob string   `json:"dob"`
+	Email string   `json:"email"`
+	Username string   `json:"username"`
 }
 
+
+
+
 func (user *User) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
+	e:= json.NewEncoder(w)
 	return e.Encode(user)
 }
 
-func GET_User_Handler(w http.ResponseWriter, r *http.Request) {
+func GET_User_Handler (w http.ResponseWriter, r *http.Request) {
 	//w.Header().Set("Content-Type", "application/json")
 	client := db.NewClient() // Initialize Prisma client
 	ctx := context.Background()
-	defer client.Disconnect()
-
-	var params map[string]string = mux.Vars(r) //access dynamic variables from this map.
-	id, ok := params["id"]
-	if !ok {
-		http.Error(w, "ID parameter not found in the path", http.StatusBadRequest)
-		return
+	if err := client.Prisma.Connect(); err != nil {
+		panic(err)
 	}
-	idint, _ := strconv.Atoi(id)
-	res, err := client.User.FindUnique(db.User.ID.Equals(idint)).Exec(ctx)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	ele := &User{
-		Id:       res.Id,
-		Username: res.Username,
-	}
-	ele.ToJSON(w)
-
+	defer func() {
+		if err := client.Prisma.Disconnect(); err != nil {
+			panic(err)
+		}
+	}() // is object
+		
+				m:=mux.Vars(r)
+				var val string
+				for _,v := range m{
+					val=v
+				}
+				
+					value, _ := strconv.Atoi(val)
+				
+				res, err := client.User.FindUnique(db.User.ID.Equals(value)).Exec(ctx)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				ele := &User{
+				Dob:res.Dob,
+				Email:res.Email,
+				Username:res.Username,
+				}
+				ele.ToJSON(w)
+		
+	
 }

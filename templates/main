@@ -14,7 +14,7 @@ func main() {
 	r.HandleFunc("{{.Path}}", handlers.{{.Method}}_{{.Name}}_Handler).Methods("{{.Method}}")
 	{{end}}
 	fmt.Println("Server is running...")
-	err := http.ListenAndServe(":8080", r)
+	err := http.ListenAndServe(":{{.Port}}", r)
 	if err!=nil{
 		fmt.Printf("Cannot start server: %s",err.Error())
 	}

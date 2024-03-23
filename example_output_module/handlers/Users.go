@@ -1,46 +1,55 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
-	"example_output_module/prisma/db"
 	"io"
 	"net/http"
+	"context"
+	
+	"example_output_module/prisma/db"
 )
 
 type Users struct {
-	Email    string `json:"email"`
-	Id       int    `json:"id"`
-	Username string `json:"username"`
+	Email string   `json:"email"`
+	Username string   `json:"username"`
 }
+
 
 type Users_list []*Users
 
+
 func (users *Users_list) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
+	e:= json.NewEncoder(w)
 	return e.Encode(users)
 }
 
-func GET_Users_Handler(w http.ResponseWriter, r *http.Request) {
+func GET_Users_Handler (w http.ResponseWriter, r *http.Request) {
 	//w.Header().Set("Content-Type", "application/json")
 	client := db.NewClient() // Initialize Prisma client
 	ctx := context.Background()
-	defer client.Disconnect()
-	var users Users_list
-
-	res, err := client.User.FindMany().Exec(ctx)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if err := client.Prisma.Connect(); err != nil {
+		panic(err)
 	}
-	for _, object := range res {
-		ele := &Users{
-			Email:    object.email,
-			Id:       object.id,
-			Username: object.username,
+	defer func() {
+		if err := client.Prisma.Disconnect(); err != nil {
+			panic(err)
 		}
-		users = append(users, ele)
-	}
-	users.ToJSON(w)
-
+	}() //is list
+	var users Users_list
+		
+					res, err := client.User.FindMany().Exec(ctx)
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+					for _, object := range res {
+						ele := &Users{
+							Email: object.Email,
+							Username: object.Username,
+						}
+						users = append(users, ele)
+					}
+					users.ToJSON(w)
+		
+	
 }
