@@ -36,19 +36,21 @@ func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}{{if .endpoint.Json.Type |
 {{- end}}
 
 func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler(w http.ResponseWriter, r *http.Request) {
-	db , err := database.Conn()
-	if err!=nil{
-		fmt.Printf("Cannot connect to database: %s",err.Error())
-		return
-	}
-	defer db.Close()
+	
 
-	w.Header().Set("Content-Type", "application/json")
+	//w.Header().Set("Content-Type", "application/json")
+
 	{{- if (hasPathParam .endpoint.Path)}}
 	var params map[string]string = mux.Vars(r) //access dynamic variables from this map.
+	id, ok := params["id"]
+	if !ok {
+		http.Error(w, "ID parameter not found in the path", http.StatusBadRequest)
+		return
+	}
 	{{- end}}
+	var {{tolower .endpoint.Name}} {{.endpoint.Name}}
 	{{- if .endpoint.Method|isGET}}
-	var {{tolower .endpoint.Name}} {{.endpoint.Name}}{{if .endpoint.Json.Type | isList}}_list{{end}}
+	{{if .endpoint.Json.Type | isList}}_list{{end}}
 	// Implement logic for {{.endpoint.Method}} {{.endpoint.Path}}
 	{{tolower .endpoint.Name}}.ToJSON(w)
 	{{- end}}
