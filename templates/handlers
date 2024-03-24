@@ -92,6 +92,46 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *
 				{{- end}}
 				}
 				ele.ToJSON(w)
+
+
+		{{else}} // is object
+		{{if .endpoint.Method | isPOST}}
+				m:=mux.Vars(r)
+				var val string
+				for _,v := range m{
+					val=v
+				}
+				{{if eq .endpoint.Key.Type "int"}}
+					value, _ := strconv.Atoi(val)
+				{{else}}
+					value := val
+				{{end}}
+			// Define a struct to hold the request body data
+			var requestData {{.endpoint.Name}}
+			// Decode the JSON request body into the requestData struct
+			if err := requestData.FromJSON(r.Body); err != nil {
+				http.Error(w, "Failed to decode request body", http.StatusBadRequest)
+				return
+			}
+
+			// Insert data into the table
+			{{$table := .endpoint.Table}}
+			_, err := client.{{.endpoint.Table}}.CreateOne(
+				{{- range $key, $value := .endpoint.Json.Properties}}
+				db.{{$table}}.{{if eq (title $key) "Id"}}ID{{else}}{{title $key}}{{end}}.Set(requestData.{{title $key}}),
+				{{- end}}
+			).Exec(ctx)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			
 		{{end}}
+	{{end}}
+
+
+
+
+
 	{{end}}
 }

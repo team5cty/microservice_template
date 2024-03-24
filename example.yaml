@@ -39,7 +39,19 @@ endpoints:
             Email: string
             Dob: string
 
-
+  - name: AddUser
+    path: /adduser/{id}
+    method: POST
+    table: User
+    key:
+        name: Id
+        type: int
+    json:
+        type: object
+        properties:
+            Email: string
+            Username: string
+            Dob: string
           
 
 
