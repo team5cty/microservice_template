@@ -8,10 +8,10 @@ database:
   models:
     - table: User
       schema:
-        Id: Int @id @default(autoincrement())
-        Username: String 
-        Email: String
         dob: String
+        Email: String
+        Id: Int @id
+        Username: String 
 
 endpoints: 
   - name: Users
@@ -40,15 +40,13 @@ endpoints:
             Dob: string
 
   - name: AddUser
-    path: /adduser/{id}
+    path: /adduser/
     method: POST
     table: User
-    key:
-        name: Id
-        type: int
     json:
         type: object
         properties:
+            Id: int
             Email: string
             Username: string
             Dob: string
