@@ -3,17 +3,18 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"os"
 	"os/exec"
-	"regexp"
+	"path/filepath"
 	"strings"
+	"text/template"
 
 	"gopkg.in/yaml.v3"
 )
 
-/*Yaml has 3 fields
+/*Yaml has 4 fields
 -Module - name of module to be generated
+-Port - Port number
 -Database - url and schema of tables
 -Endpoints array - list of endpoints
 */
@@ -64,116 +65,104 @@ func main() {
 		fmt.Printf("Failed to parse YAML file: %s\n", err.Error())
 	}
 
-	//Create a new git module with name as per in YAML
-	//Inside it create handlers folder which will contain handler function and struct of one endpoint
-	//Create prisma folder inside which there will be schema.prisma file.
-	//Run command go mod init and go get to install packages packages gorilla/mux and lib/pq and prisma.
-
+	/*Create folder structure:
+	output_module:
+		handlers: handler file for each endpoint.
+		prisma : Database/prisma schema
+	*/
 	os.Mkdir(yamlobject.Module, os.ModePerm)
 	os.Chdir(yamlobject.Module)
 	os.Mkdir("handlers", os.ModePerm)
 	os.Mkdir("prisma", os.ModePerm)
+
+	//Run commands to initialise go module with dependencies
 	cmd := exec.Command("go", "mod", "init", yamlobject.Module)
-	cmd.Run()
+	execute_with_stdout_stderr(cmd)
 	cmd = exec.Command("go", "get", "github.com/gorilla/mux")
-	cmd.Run()
+	execute_with_stdout_stderr(cmd)
 	cmd = exec.Command("go", "get", "github.com/steebchen/prisma-client-go")
-	cmd.Run()
+	execute_with_stdout_stderr(cmd)
+	cmd = exec.Command("go", "get", "github.com/joho/godotenv")
+	execute_with_stdout_stderr(cmd)
+	cmd = exec.Command("go", "get", "github.com/shopspring/decimal")
+	execute_with_stdout_stderr(cmd)
 	os.Chdir("..")
 
 	//There are three template files:-
 	//main - for generating main.go
-	//handler - for generating files inside handler folder
-	//database - for generating file inside database folder
+	//handler - for generating files inside handler file for endpoints
+	//prisma - for generating schema.prisma
 
 	//read main template and generate main.go inside module
-	template_file_buffer, err := os.ReadFile("templates/main")
+
+	template_file_buffer, err := os.ReadFile(filepath.Join("templates", "main"))
 	if err != nil {
 		fmt.Printf("Failed to read template.go file: %s\n", err.Error())
 	}
-	template_output_buffer, err := os.Create(yamlobject.Module + "/main.go")
+
+	template_output_buffer, err := os.Create(filepath.Join(yamlobject.Module, "main.go"))
 	if err != nil {
 		fmt.Printf("Failed to create output.go file: %s\n", err.Error())
 	}
-	t := template.Must(template.New("restAPI").Funcs(template.FuncMap{"tolower": strings.ToLower}).Parse(string(template_file_buffer)))
+
+	t := template.Must(template.New("main.go_template").
+		Funcs(template.FuncMap{"tolower": strings.ToLower}).
+		Parse(string(template_file_buffer)))
+
 	err = t.Execute(template_output_buffer, yamlobject)
+
 	if err != nil {
 		fmt.Printf("Error executing template: %s\n", err.Error())
 	}
-	template_file_buffer, err = os.ReadFile("templates/prisma")
+
+	//read prisma template and generate schema.prisma inside prisma folder
+
+	template_file_buffer, err = os.ReadFile(filepath.Join("templates", "prisma"))
 	if err != nil {
 		fmt.Printf("Failed to read template.go file: %s\n", err.Error())
 	}
-	template_output_buffer, err = os.Create(yamlobject.Module + "/prisma/schema.prisma")
+
+	template_output_buffer, err = os.Create(filepath.Join(yamlobject.Module, "prisma", "schema.prisma"))
 	if err != nil {
 		fmt.Printf("Failed to create output.go file: %s\n", err.Error())
 	}
-	t = template.Must(template.New("restAPI").Parse(string(template_file_buffer)))
+
+	t = template.Must(template.New("prisma_template").Parse(string(template_file_buffer)))
 	err = t.Execute(template_output_buffer, yamlobject)
 	if err != nil {
 		fmt.Printf("Error executing template: %s\n", err.Error())
 	}
 
-	// Run prisma db push
+	// Run prisma db push to sync schema and db
 	fmt.Println("Syncing schema with database...")
-	os.Chdir(yamlobject.Module + "/prisma")
-	var out bytes.Buffer
+	os.Chdir(filepath.Join(yamlobject.Module, "prisma"))
 	cmd = exec.Command("go", "run", "github.com/steebchen/prisma-client-go", "db", "push")
-	cmd.Stdout = &out
-	if err := cmd.Start(); err != nil {
-		fmt.Println("Error starting command:", err)
-		return
-	}
-	if err := cmd.Wait(); err != nil {
-		fmt.Println("Error occurred:", err)
-		return
-	}
-	fmt.Println(out.String())
-	cmd = exec.Command("go", "get", "github.com/joho/godotenv")
-	if err := cmd.Start(); err != nil {
-		fmt.Println("Error starting command:", err)
-		return
-	}
-	if err := cmd.Wait(); err != nil {
-		fmt.Println("Error occurred:", err)
-		return
-	}
-	cmd = exec.Command("go", "get", "github.com/shopspring/decimal")
-	if err := cmd.Start(); err != nil {
-		fmt.Println("Error starting command:", err)
-		return
-	}
-
-	if err := cmd.Wait(); err != nil {
-		fmt.Println("Error occurred:", err)
-		return
-	}
-
+	execute_with_stdout_stderr(cmd)
 	os.Chdir("..")
 	os.Chdir("..")
 
-	//Loop through each endpoints and for each, generate a file
-	// inside handlers folder in module using handler template
+	//Loop through each endpoints and for each,
+	//generate a handler file in handlers folder
+
 	for _, i := range yamlobject.Endpoints {
-		template_file_buffer, err := os.ReadFile("templates/handlers")
+		template_file_buffer, err := os.ReadFile(filepath.Join("templates", "handlers"))
 		if err != nil {
 			fmt.Printf("Failed to read template.go file: %s\n", err.Error())
 		}
-		template_output_buffer, err := os.Create(yamlobject.Module + "/handlers/" + i.Name + ".go")
+		template_output_buffer, err := os.Create(filepath.Join(yamlobject.Module, "handlers", i.Name+".go"))
 		if err != nil {
 			fmt.Printf("Failed to create output.go file: %s\n", err.Error())
 		}
-		t := template.Must(template.New("restAPI").Funcs(template.FuncMap{
-			"tolower":      strings.ToLower,
-			"isGET":        isGET,
-			"isPOST":       isPOST,
-			"title":        strings.Title,
-			"hasPathParam": hasPathParam,
-			"isList":       isList,
-			"isNumeric":    is_numeric,
-		}).Parse(string(template_file_buffer)))
-		//We need name of module as variable inside handler template,
-		// so passing this map with both a endpoint and module name.
+
+		t := template.Must(template.New("handler_template").
+			Funcs(template.FuncMap{
+				"tolower":      strings.ToLower,
+				"title":        strings.Title,
+				"hasPathParam": hasPathParam,
+			}).
+			Parse(string(template_file_buffer)))
+
+		//Passing module name along with endpoint
 		data := map[string]any{
 			"endpoint": i,
 			"module":   yamlobject.Module,
@@ -186,32 +175,23 @@ func main() {
 	}
 }
 
-// functions for checking if method is get or post
-// inorder to add either ToJSON or FromJSON methods to struct in handlers template.
-func isGET(s string) bool {
-	if s == "GET" {
-		return true
+//User defined functions
+
+func execute_with_stdout_stderr(cmd *exec.Cmd) {
+	var out, stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Error starting command:", err)
+		return
 	}
-	return false
+	if err := cmd.Wait(); err != nil {
+		fmt.Println(stderr.String())
+		return
+	}
+	fmt.Println(out.String())
 }
 
-func isPOST(s string) bool {
-	if s == "POST" {
-		return true
-	}
-	return false
-}
 func hasPathParam(path string) bool {
 	return strings.Contains(path, "{")
-}
-
-func isList(st string) bool {
-	if st == "list" {
-		return true
-	}
-	return false
-}
-
-func is_numeric(word string) bool {
-	return regexp.MustCompile(`\d`).MatchString(word)
 }

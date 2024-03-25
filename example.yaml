@@ -4,14 +4,14 @@ port: 8080
 
 database:
   provider: postgres
-  url: postgresql://postgres:password@localhost:3000/newdb123
+  url: postgresql://postgres:l@localhost/newdb
   models:
     - table: User
       schema:
-        dob: String
-        Email: String
+        Username: String
+        Dob: String 
         Id: Int @id
-        Username: String 
+        Email: String
 
 endpoints: 
   - name: Users

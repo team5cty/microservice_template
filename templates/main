@@ -10,9 +10,11 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	{{range .Endpoints}}
+
+	{{- range .Endpoints}}
 	r.HandleFunc("{{.Path}}", handlers.{{.Method}}_{{.Name}}_Handler).Methods("{{.Method}}")
-	{{end}}
+	{{- end}}
+	
 	fmt.Println("Server is running...")
 	err := http.ListenAndServe(":{{.Port}}", r)
 	if err!=nil{
