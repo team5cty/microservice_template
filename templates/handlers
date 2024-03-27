@@ -42,11 +42,11 @@ func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *
 	client := db.NewClient() 
 	ctx := context.Background()
 	if err := client.Prisma.Connect(); err != nil {
-		panic(err)
+		fmt.Printf("Error connecting database: %s",err.Error())
 	}
 	defer func() {
 		if err := client.Prisma.Disconnect(); err != nil {
-			panic(err)
+			fmt.Printf("Error Disconnecting database: %s",err.Error())
 		}
 	}()  
 
