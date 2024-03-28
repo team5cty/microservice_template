@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgres"
-  url      = "postgresql://postgres:l@localhost/newdb"
+  url      = "postgresql://postgres:l@192.168.49.1/newdbasf"
 }
 
 generator db {
@@ -8,11 +8,9 @@ generator db {
 }
 
 
-model User {
-  Dob String
-  Email String
-  Id Int @id
-  Username String
+model Products {
+  Name String @id
+  Price Float
 }
 
 

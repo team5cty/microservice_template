@@ -10,9 +10,8 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/users/", handlers.GET_Users_Handler).Methods("GET")
-	r.HandleFunc("/users/{Id}", handlers.GET_User_Handler).Methods("GET")
-	r.HandleFunc("/adduser/", handlers.POST_AddUser_Handler).Methods("POST")
+	r.HandleFunc("/products/", handlers.GET_Products_Handler).Methods("GET")
+	r.HandleFunc("/addproduct/", handlers.POST_AddProduct_Handler).Methods("POST")
 	
 	fmt.Println("Server is running...")
 	err := http.ListenAndServe(":8080", r)

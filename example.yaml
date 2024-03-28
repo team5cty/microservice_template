@@ -4,52 +4,34 @@ port: 8080
 
 database:
   provider: postgres
-  url: postgresql://postgres:l@localhost/newdb
+  url: postgresql://postgres:l@localhost/newdbasf
   models:
-    - table: User
+    - table: Products
       schema:
-        Username: String
-        Dob: String 
-        Id: Int @id
-        Email: String
+        Name: String @id
+        Price: Float
 
 endpoints: 
-  - name: Users
-    path: /users/
+  - name: Products
+    path: /products/
     method: GET
-    table: User
+    table: Products
     json:
         type: list
         properties:
-            username: string
-            Email: string
+            name: string
+            price: float32
           
 
-  - name: User
-    path: /users/{Id}
-    method: GET
-    table: User
-    key:
-        name: Id
-        type: int
-    json:
-        type: object
-        properties:
-            Username: string
-            Email: string
-            Dob: string
-
-  - name: AddUser
-    path: /adduser/
+  - name: AddProduct
+    path: /addproduct/
     method: POST
-    table: User
+    table: Products
     json:
         type: object
         properties:
-            Id: int
-            Email: string
-            Username: string
-            Dob: string
+            name: string
+            price: float32
           
 
 

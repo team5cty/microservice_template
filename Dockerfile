@@ -19,5 +19,6 @@ RUN apt install -y ca-certificates
 COPY . .
 RUN go mod download
 RUN go run github.com/steebchen/prisma-client-go db push
+RUN go build -o main main.go
 
-CMD ["./main.go"]
+CMD ["./main"]

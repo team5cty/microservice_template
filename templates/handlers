@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"context"
+	"fmt"
 	{{if eq .endpoint.Key.Type "int"}}
 	"strconv"
 	{{end}}
