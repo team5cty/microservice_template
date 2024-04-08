@@ -3,11 +3,11 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"example_output_module/kafka"
+	"example_output_module/prisma/db"
 	"fmt"
 	"io"
 	"net/http"
-
-	"example_output_module/prisma/db"
 )
 
 type AddProduct struct {
@@ -33,14 +33,14 @@ func POST_AddProduct_Handler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	w.Header().Set("Content-Type", "application/json")
-
 	var requestData AddProduct
 	if err := requestData.FromJSON(r.Body); err != nil {
 		http.Error(w, "Failed to decode request body", http.StatusBadRequest)
 		return
 	}
+	err := kafka.ProduceMessage("add-user-topic", fmt.Sprintf("name: %s, Price: %.2f", requestData.Name, requestData.Price))
 
-	_, err := client.Products.CreateOne(
+	_, err = client.Products.CreateOne(
 		db.Products.Name.Set(requestData.Name),
 		db.Products.Price.Set(requestData.Price),
 	).Exec(ctx)

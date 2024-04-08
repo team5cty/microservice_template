@@ -4,7 +4,7 @@ port: 8080
 
 database:
   provider: postgres
-  url: postgresql://postgres:l@localhost/newdbasf
+  url:  postgresql://postgres:123@localhost:3001/newdb123
   models:
     - table: Products
       schema:
@@ -13,15 +13,15 @@ database:
 
 endpoints: 
   - name: Products
-    path: /products/
+    path: /products
     method: GET
     table: Products
     json:
         type: list
         properties:
             name: string
-            price: float32
-          
+            price: float64
+        
 
   - name: AddProduct
     path: /addproduct/
@@ -31,7 +31,7 @@ endpoints:
         type: object
         properties:
             name: string
-            price: float32
+            price: float64
           
 
 

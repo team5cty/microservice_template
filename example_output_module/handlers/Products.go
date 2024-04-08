@@ -22,7 +22,6 @@ func (products *Products_list) ToJSON(w io.Writer) error {
 }
 
 func GET_Products_Handler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	client := db.NewClient()
 	ctx := context.Background()
 	if err := client.Prisma.Connect(); err != nil {
