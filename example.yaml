@@ -1,6 +1,6 @@
 module: Product
 
-port: 8080
+port: 8000
 
 database:
   provider: postgres
@@ -13,22 +13,13 @@ database:
         Price: Float
 
 endpoints: 
-  - name: Products
-    path: /products
-    method: GET
-    table: Products
-    json:
-        type: list
-        properties:
-            productid: int
-            name: string
-            price: float64
-     
-
   - name: AddProduct
     path: /addproduct/
     method: POST
     table: Products
+    kafka:
+      topic: orderid
+      type: consumer
     json:
         type: object
         properties:

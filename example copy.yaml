@@ -4,7 +4,7 @@ port: 8090
 
 database:
   provider: postgres
-  url:  postgresql://postgres:12@localhost:3002/newdb123
+  url:  postgresql://postgres:12@localhost:3002/newdb1234
   models:
     - table: Order
       schema:
@@ -12,10 +12,16 @@ database:
         ProductId: Int
         Price: Float
 
+kafka: localhost:9092
+
 endpoints: 
-  - name: 
+  - name: placeorder
     path: /placeorder
+    kafka:
+      topic: orderid
+      type: producer
     method: POST
+    table: Order
     json:
         type: object
         properties:

@@ -21,6 +21,7 @@ import (
 
 type Yaml struct {
 	Module   string `yaml:"module"`
+	Kafka    string `yaml:"kafka"`
 	Port     string `yaml:"port"`
 	Database struct {
 		Provider string  `yaml:"provider"`
@@ -40,8 +41,12 @@ type Endpoint struct {
 	Name   string `yaml:"name"`
 	Path   string `yaml:"path"`
 	Method string `yaml:"method"`
-	Table  string `yaml:"table"`
-	Key    struct {
+	Kafka  struct {
+		Topic string `yaml:"topic"`
+		Type  string `yaml:"type"`
+	} `yaml:"kafka"`
+	Table string `yaml:"table"`
+	Key   struct {
 		Name string `yaml:"name"`
 		Type string `yaml:"type"`
 	} `yaml:"key"`
@@ -74,6 +79,7 @@ func main() {
 	os.Chdir(yamlobject.Module)
 	os.Mkdir("handlers", os.ModePerm)
 	os.Mkdir("prisma", os.ModePerm)
+	os.Mkdir("kafka", os.ModePerm)
 
 	//Run commands to initialise go module with dependencies
 	cmd := exec.Command("go", "mod", "init", yamlobject.Module)
@@ -85,6 +91,8 @@ func main() {
 	cmd = exec.Command("go", "get", "github.com/joho/godotenv")
 	execute_with_stdout_stderr(cmd)
 	cmd = exec.Command("go", "get", "github.com/shopspring/decimal")
+	execute_with_stdout_stderr(cmd)
+	cmd = exec.Command("go", "get", "github.com/segmentio/kafka-go")
 	execute_with_stdout_stderr(cmd)
 	os.Chdir("..")
 
@@ -172,6 +180,26 @@ func main() {
 		if err != nil {
 			fmt.Printf("Error executing template: %s\n", err.Error())
 		}
+	}
+
+	template_file_buffer, err = os.ReadFile(filepath.Join("templates", "kafka"))
+	if err != nil {
+		fmt.Printf("Failed to read kafka file: %s\n", err.Error())
+	}
+
+	template_output_buffer, err = os.Create(filepath.Join(yamlobject.Module, "kafka", "kafka.go"))
+	if err != nil {
+		fmt.Printf("Failed to create output.go file: %s\n", err.Error())
+	}
+
+	t = template.Must(template.New("kafka_template").
+		Funcs(template.FuncMap{"tolower": strings.ToLower}).
+		Parse(string(template_file_buffer)))
+
+	err = t.Execute(template_output_buffer, yamlobject)
+
+	if err != nil {
+		fmt.Printf("Error executing template: %s\n", err.Error())
 	}
 }
 

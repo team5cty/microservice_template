@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"Product/handlers"
-	"Product/kafka"
+	"Order/handlers"
+	"Order/kafka"
 
 	"github.com/gorilla/mux"
 )
@@ -12,12 +12,11 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/addproduct/", handlers.POST_AddProduct_Handler).Methods("POST")
+	r.HandleFunc("/placeorder", handlers.POST_placeorder_Handler).Methods("POST")
 	
-	go kafka.Consume("orderid", 0, func(s string) {})
 	
 	fmt.Println("Server is running...")
-	err := http.ListenAndServe(":8000", r)
+	err := http.ListenAndServe(":8090", r)
 	if err!=nil{
 		fmt.Printf("Cannot start server: %s",err.Error())
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	{{- end}}
 	"{{.module}}/prisma/db"
+	"{{.module}}/kafka"
 )
 
 type {{.endpoint.Name}} struct {
@@ -39,7 +40,11 @@ func ({{.endpoint.Name | tolower}} *{{.endpoint.Name}}{{if eq .endpoint.Json.Typ
 }
 {{- end}}
 
+
 func {{.endpoint.Method}}_{{.endpoint.Name}}_Handler (w http.ResponseWriter, r *http.Request) {
+	{{if eq .endpoint.Kafka.Type "producer"}}
+	produce := kafka.Producer("{{.endpoint.Kafka.Topic}}",0)
+	{{end}}
 	client := db.NewClient() 
 	ctx := context.Background()
 	if err := client.Prisma.Connect(); err != nil {
