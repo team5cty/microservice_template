@@ -22,6 +22,7 @@ func (addproduct *AddProduct) FromJSON(r io.Reader) error {
 }
 
 func POST_AddProduct_Handler(w http.ResponseWriter, r *http.Request) {
+
 	client := db.NewClient()
 	ctx := context.Background()
 	if err := client.Prisma.Connect(); err != nil {

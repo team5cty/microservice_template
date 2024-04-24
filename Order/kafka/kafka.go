@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -38,21 +39,22 @@ func Consume(topic string, partition int, logic func(s string)) {
 	}
 
 	conn.SetReadDeadline(time.Now().Add(10 * time.Second))
-	batch := conn.ReadBatch(1, 1e6) // fetch 10KB min, 1MB max
 
 	b := make([]byte, 10e3) // 10KB max per message
 
 	for {
+		batch := conn.ReadBatch(1, 1)
 		n, err := batch.Read(b)
 		if err != nil {
+			fmt.Printf("ERROR: %s", err.Error())
 			break
 		}
 		var s string = string(b[:n])
 		logic(s)
-	}
 
-	if err := batch.Close(); err != nil {
-		log.Fatal("failed to close batch:", err)
+		if err := batch.Close(); err != nil {
+			log.Fatal("failed to close batch:", err)
+		}
 	}
 
 	if err := conn.Close(); err != nil {

@@ -4,13 +4,12 @@ port: 8090
 
 database:
   provider: postgres
-  url:  postgresql://postgres:12@localhost:3002/newdb1234
+  url:  postgresql://postgres:l@localhost:3000/newdb
   models:
     - table: Order
       schema:
-        OrderId: Int @id
-        ProductId: Int
-        Price: Float
+        Productid: Int @id
+        
 
 kafka: localhost:9092
 

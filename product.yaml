@@ -1,16 +1,19 @@
 module: Product
 
-port: 8000
+port: 9000
 
 database:
   provider: postgres
-  url:  postgresql://postgres:12@localhost:3002/newdb123
+  url:  postgresql://postgres:l@localhost:3000/newdb1
   models:
     - table: Products
       schema:
         Productid: Int @id
         Name: String 
         Price: Float
+
+kafka: localhost:9092
+
 
 endpoints: 
   - name: AddProduct
