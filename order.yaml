@@ -9,7 +9,6 @@ database:
     - table: Order
       schema:
         Productid: Int @id
-        ProductName: String?
         
 
 kafka: localhost:9092
