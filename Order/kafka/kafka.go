@@ -38,7 +38,7 @@ func Consume(topic string, partition int, logic func(s string)) {
 		log.Fatal("failed to dial leader:", err)
 	}
 
-	conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+	conn.SetReadDeadline(time.Time{})
 
 	b := make([]byte, 10e3) // 10KB max per message
 

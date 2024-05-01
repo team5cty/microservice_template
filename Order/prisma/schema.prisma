@@ -9,6 +9,7 @@ generator db {
 
 
 model Order {
+  ProductName String?
   Productid Int @id
 }
 
