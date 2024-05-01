@@ -5,14 +5,12 @@ import (
 	"net/http"
 	"{{.Module}}/handlers"
 	"{{.Module}}/kafka"
-
 	"github.com/gorilla/mux"
 )
 
 
 func main() {
 	r := mux.NewRouter()
-
 	{{- range .Endpoints}}
 	r.HandleFunc("{{.Path}}", handlers.{{.Method}}_{{.Name}}_Handler).Methods("{{.Method}}")
 	{{- end}}
