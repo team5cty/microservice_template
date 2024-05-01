@@ -14,7 +14,8 @@ func main() {
 	r.HandleFunc("/addproduct/", handlers.POST_AddProduct_Handler).Methods("POST")
 
 	go kafka.Consume("orderid", 0, func(s string) {
-		fmt.Println("Consumed message:", s)
+		fmt.Println("Consuming in Product:")
+		fmt.Println(s)
 	})
 
 	fmt.Println("Server is running...")

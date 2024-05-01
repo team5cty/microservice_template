@@ -12,6 +12,7 @@ database:
         Name: String 
         Price: Float
 
+
 kafka: localhost:9092
 
 
