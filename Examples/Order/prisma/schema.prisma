@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgres"
-  url      = "postgresql://postgres:l@localhost:3000/newdb2"
+  url      = "postgresql://postgres:l@localhost:3000/newdb"
 }
 
 generator db {
@@ -9,10 +9,8 @@ generator db {
 
 
 model Order {
-  Orderid Int @id
-  Productid Int
-  Quantity Int
-  Status String
+  ProductName String?
+  Productid Int @id
 }
 
 
